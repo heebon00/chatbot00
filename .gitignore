@@ -17,6 +17,10 @@ backend/.venv/
 *.db.backup
 *.sqlite
 *.sqlite3
+!backend/chat.db
+*-journal
+*-wal
+*-shm
 
 # Node & Frontend
 node_modules/

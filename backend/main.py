@@ -1,14 +1,44 @@
-from fastapi import FastAPI, HTTPException                         
-from fastapi.middleware.cors import CORSMiddleware  
-from pydantic import BaseModel                      
-import requests, os                                 
-from dotenv import load_dotenv    
+import threading
+import time
+import os
+import requests
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import db
 
-load_dotenv() #.env의 키를 추출하는 함수 
-app = FastAPI()
+load_dotenv() # .env의 키를 추출하는 함수
 db.init_db()
-print(app)
+
+# Render 슬립타임 방어 설정 (백엔드 자체 실행)
+# Render는 15분 동안 외부 인바운드 요청이 없으면 슬립(Spin-down)에 들어갑니다.
+# 백엔드 서버 자체가 10분(600초)마다 자신의 /health 엔드포인트를 호출하여 슬립을 원천 방어합니다.
+RENDER_EXTERNAL_URL = (
+    os.getenv("RENDER_EXTERNAL_URL")
+    or os.getenv("KEEP_ALIVE_URL")
+    or "https://chatbot00-back.onrender.com"
+)
+PING_INTERVAL = int(os.getenv("PING_INTERVAL", "600"))  # 기본 10분 (600초)
+
+def keep_alive_worker():
+    """외부 서비스 없이 백엔드 자체적으로 10분마다 핑을 보내 슬립을 막는 데몬 스레드"""
+    time.sleep(5)  # 서버 부팅 대기
+    health_url = f"{RENDER_EXTERNAL_URL.rstrip('/')}/health"
+    print(f"[Keep-Alive] 백엔드 자체 슬립 방어 스레드 가동: {health_url} (간격: {PING_INTERVAL}초)", flush=True)
+
+    while True:
+        try:
+            res = requests.get(health_url, timeout=30)
+            print(f"[Keep-Alive] 자체 핑 성공 ({res.status_code}): {health_url}", flush=True)
+        except Exception as e:
+            print(f"[Keep-Alive] 자체 핑 전송 실패 (다음 주기 재시도): {e}", flush=True)
+        time.sleep(PING_INTERVAL)
+
+# 백엔드 프로세스 시작 시 백그라운드 데몬 스레드로 즉시 실행 (서버 종료 시 함께 종료)
+threading.Thread(target=keep_alive_worker, daemon=True).start()
+
+app = FastAPI()
 app.add_middleware(                                 
     CORSMiddleware,                                 
     allow_origins=["*"],                           
@@ -53,6 +83,13 @@ def build_history(session_id):
         {"role": "user" if r["role"] == "user" else "assistant", "content": r["text"]}
         for r in rows
     ]
+
+@app.get("/")
+@app.get("/health")
+@app.get("/ping")
+def health_check():
+    """Render 슬립 방지 및 서버 상태 확인 엔드포인트"""
+    return {"status": "ok", "message": "pong"}
 
 @app.post("/chat")
 def chat(msg: Msg):

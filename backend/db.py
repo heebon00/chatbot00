@@ -4,7 +4,10 @@ import sqlite3
 
 from requests import get
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_local.db")
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    os.getenv("DB_NAME", "chat.db")
+)
 
 def get_conn():
     conn = sqlite3.connect(DB_PATH, timeout=10, check_same_thread=False)

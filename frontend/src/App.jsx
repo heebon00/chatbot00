@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 
-//const API = import.meta.env.VITE_API_URL ||  "https://chatbot00-back.onrender.com";
-
-const API = (import.meta.env.VITE_API_URL || "http://localhost:8002").replace(/\/$/, "");
+const API = (import.meta.env.VITE_API_URL || "https://chatbot00-back.onrender.com").replace(/\/$/, "");
 
 export default function App() {
   const [sessions, setSession] = useState([]);

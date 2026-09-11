@@ -13,11 +13,10 @@ venv/
 backend/.venv/
 
 # SQLite Databases
-*.db
 *.db.backup
 *.sqlite
 *.sqlite3
-!backend/chat.db
+!backend/*.db
 *-journal
 *-wal
 *-shm

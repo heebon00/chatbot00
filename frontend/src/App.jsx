@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 
 const DEFAULT_API = "https://chatbot00-back.onrender.com";
-const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+const API = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "http://localhost:8002"
-  : DEFAULT_API;
+  : DEFAULT_API);
 
 export default function App() {
   const [sessions, setSession] = useState([]);
@@ -14,12 +14,20 @@ export default function App() {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const request = async (url, options) => {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      throw new Error(`서버 오류 (${res.status})`);
+    }
+    return res.json();
+  };
 
   // func
   // 세션데이터 로드
   const loadSessions = async () => {
-    const res = await fetch(`${API}/sessions`);
-    const data = await res.json();
+    const data = await request(`${API}/sessions`);
     const nextSessions = Array.isArray(data) ? data : data.sessions ?? [];
     setSession(nextSessions);
     return nextSessions;
@@ -31,9 +39,7 @@ export default function App() {
       setMsgs([]);
       return;
     }
-    const res = await fetch(`${API}/sessions/${id}/messages`);
-    const data = await res.json();
-    console.log(res);
+    const data = await request(`${API}/sessions/${id}/messages`);
     setMsgs(Array.isArray(data) ? data : data.messages ?? []);
   };
   //선택된 세션 아이디 저장
@@ -44,8 +50,7 @@ export default function App() {
 
   //새로운 세션 추가
   const newSession = async () => {
-    const res = await fetch(`${API}/sessions`, { method: "POST" });
-    const data = await res.json();
+    const data = await request(`${API}/sessions`, { method: "POST" });
     await loadSessions();
     setSessionId(data.id);
     setMsgs([]);
@@ -53,13 +58,19 @@ export default function App() {
 
   // 리액트 컴포넌트 상태에 따라 함수실행을 제어
   useEffect(() => {
-    loadSessions().then((list) => {
-      if (list.length > 0) {
-        console.log(list[0].id);
-        setSessionId(list[0].id);
-        loadMsg(list[0].id);
+    const initialize = async () => {
+      try {
+        const list = await loadSessions();
+        if (list.length > 0) {
+          setSessionId(list[0].id);
+          await loadMsg(list[0].id);
+        }
+      } catch (requestError) {
+        setError(`백엔드에 연결할 수 없습니다. ${requestError.message}`);
       }
-    });
+    };
+
+    void initialize();
   }, []);
 
   // 수정할 세션의 아이디, 타이틀로 선택
@@ -69,7 +80,7 @@ export default function App() {
   };
   // 세션 타이틀 수정
   const saveTitle = async (id) => {
-    await fetch(`${API}/sessions/${id}`, {
+    await request(`${API}/sessions/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: editTitle }),
@@ -79,11 +90,7 @@ export default function App() {
   };
   // 세션삭제
   const removeSession = async (id) => {
-    const res = await fetch(`${API}/sessions/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      console.error("대화 삭제 실패", await res.text());
-      return;
-    }
+    await request(`${API}/sessions/${id}`, { method: "DELETE" });
     const list = await loadSessions();
     const next = list.length > 0 ? list[0].id : null;
     setSessionId(next);
@@ -95,14 +102,19 @@ export default function App() {
     const text = input;
     setInput("");
     setLoading(true);
-    await fetch(`${API}/sessions/${sessionId}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    await loadMsg(sessionId);
-    await loadSessions();
-    setLoading(false);
+    try {
+      await request(`${API}/sessions/${sessionId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      await loadMsg(sessionId);
+      await loadSessions();
+    } catch (requestError) {
+      setError(`메시지를 보내지 못했습니다. ${requestError.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   //엔터키 입력시 메시지 전송
@@ -143,6 +155,7 @@ export default function App() {
       </aside>
 
       <main className="chat">
+        {error && <p className="error">{error}</p>}
         <div className="box">
           {msgs.map((m) => (
             <div key={m.id} className={m.role}>

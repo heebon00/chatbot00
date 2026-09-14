@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "@fontsource/megrim";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/700.css";
 import "./index.css";

@@ -128,7 +128,6 @@ export default function App() {
   return (
     <div className="app">
       <aside className="side">
-        <p className="logo">askai</p>
         <button className="new" onClick={newSession}>
           <img src={plusIcon} alt="" />
           새 대화
@@ -162,12 +161,6 @@ export default function App() {
       <main className="chat">
         {error && <p className="error">{error}</p>}
         <div className="box">
-          {msgs.length === 0 && !loading && (
-            <div className="empty">
-              <p className="empty-mark">A</p>
-              <p className="empty-text">ask ai anything</p>
-            </div>
-          )}
           {msgs.map((m) => (
             <div key={m.id} className={m.role}>
               <p>{m.text}</p>

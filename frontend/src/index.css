@@ -11,7 +11,6 @@ button { font-family: inherit; }
 .app { display: flex; height: 100vh; }
 
 .side { width: 300px; flex-shrink: 0; background: rgba(59, 36, 36, 0.4); padding: 28px 35px; overflow-y: auto; }
-.logo { margin: 0 0 24px; font-family: "Megrim", system-ui, sans-serif; font-size: 24px; color: #150000; text-transform: uppercase; }
 .new {
   display: flex; align-items: center; gap: 12px; width: 100%; height: 50px; padding: 0 17px; margin-bottom: 16px;
   background: rgba(59, 36, 36, 0.5); border: none; border-radius: 10px; cursor: pointer;
@@ -31,11 +30,6 @@ button { font-family: inherit; }
 
 .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 40px; }
 .box { flex: 1; width: 100%; max-width: 972px; overflow-y: auto; padding: 16px; }
-
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; font-family: "Megrim", system-ui, sans-serif; }
-.empty p { margin: 0; }
-.empty-mark { font-size: 128px; line-height: 1; }
-.empty-text { font-size: 32px; text-transform: uppercase; }
 
 .user { text-align: right; margin: 24px 0; }
 .bot { text-align: left; margin: 24px 0; max-width: 657px; }
@@ -58,6 +52,4 @@ button { font-family: inherit; }
 @media (max-width: 700px) {
   .side { width: 200px; padding: 20px 16px; }
   .new { font-size: 18px; }
-  .empty-mark { font-size: 80px; }
-  .empty-text { font-size: 22px; }
 }

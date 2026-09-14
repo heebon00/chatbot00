@@ -4,9 +4,9 @@ import editIcon from "./assets/icons/edit.svg";
 import sendIcon from "./assets/icons/send-button.svg";
 
 const DEFAULT_API = "https://chatbot00-back.onrender.com";
-const API = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
   ? "http://localhost:8002"
-  : DEFAULT_API);
+  : DEFAULT_API;
 
 export default function App() {
   const [sessions, setSession] = useState([]);

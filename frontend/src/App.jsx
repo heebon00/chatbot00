@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import plusIcon from "./assets/icons/plus.svg";
+import editIcon from "./assets/icons/edit.svg";
+import sendIcon from "./assets/icons/send-button.svg";
 
 const DEFAULT_API = "https://chatbot00-back.onrender.com";
 const API = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
@@ -125,14 +128,14 @@ export default function App() {
   return (
     <div className="app">
       <aside className="side">
+        <p className="logo">askai</p>
         <button className="new" onClick={newSession}>
-          + 새 대화
+          <img src={plusIcon} alt="" />
+          새 대화
         </button>
         <ul className="session-list">
           {sessions.map((s) => (
             <li key={s.id} className={s.id === sessionId ? "session on" : "session"}>
-              {console.log('edit',editId)}
-              {console.log('session',s.id)}
               {editId === s.id ? (
                 <span className="rename">
                   <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
@@ -144,7 +147,9 @@ export default function App() {
                     {s.title}
                   </button>
                   <span className="session-tools">
-                    <button onClick={() => startRename(s)}>이름</button>
+                    <button onClick={() => startRename(s)} aria-label="이름 바꾸기">
+                      <img src={editIcon} alt="" />
+                    </button>
                     <button onClick={() => removeSession(s.id)}>삭제</button>
                   </span>
                 </>
@@ -157,6 +162,12 @@ export default function App() {
       <main className="chat">
         {error && <p className="error">{error}</p>}
         <div className="box">
+          {msgs.length === 0 && !loading && (
+            <div className="empty">
+              <p className="empty-mark">A</p>
+              <p className="empty-text">ask ai anything</p>
+            </div>
+          )}
           {msgs.map((m) => (
             <div key={m.id} className={m.role}>
               <p>{m.text}</p>
@@ -166,7 +177,9 @@ export default function App() {
         </div>
         <div className="input-row">
           <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={onKey} placeholder="메시지를 입력하세요" />
-          <button onClick={send}>전송</button>
+          <button onClick={send} aria-label="전송">
+            <img src={sendIcon} alt="" />
+          </button>
         </div>
       </main>
     </div>
